@@ -12,56 +12,68 @@ namespace lab02_2_Shooter
     {
         public static Form1 form;
         public static Random rnd = new Random();
-        public static int horizon = 150;
+        public static int horizon = 150, wave = 1;
         public static double fortHealth = 100, time = 0;
         public static Graphics graphics;
         public static Bitmap bitmap;
-        public static List<Enemy> enemies = new List<Enemy>();
-        public static List<Enemy> wave = new List<Enemy>();
+        public static List<Enemy> enemies = new List<Enemy>(), currentWave = new List<Enemy>();
+        public static List<List<Enemy>> waves = new List<List<Enemy>>();
 
         public static void Init(Form1 f1)
         {
             form = f1;
-            wave.Add(new Enemy(50, 10, 20, 70, 70, 0));
-            wave.Add(new Enemy(60, 10, 20, 100, 100, 20));
-            wave.Add(new Enemy(60, 10, 20, 50, 50, 35));
-            wave.Add(new Enemy(30, 10, 20, 70, 70, 45));
-            wave.Add(new Enemy(100, 10, 20, 100, 100, 55));
-            wave.Add(new Enemy(60, 10, 20, 70, 70, 20));
-            wave.Add(new Enemy(70, 10, 20, 100, 100, 0));
             bitmap = new Bitmap(form.Width, form.Height);
             graphics = Graphics.FromImage(bitmap);
+            var wave1 = new List<Enemy>();
+            wave1.Add(new Enemy(50, 10, 20, 70, 70, 0));
+            wave1.Add(new Enemy(60, 5, 20, 100, 100, 20));
+            wave1.Add(new Enemy(60, 10, 20, 50, 50, 35));
+            wave1.Add(new Enemy(30, 10, 20, 70, 70, 45));
+            wave1.Add(new Enemy(100, 10, 20, 100, 100, 55));
+            wave1.Add(new Enemy(60, 10, 20, 70, 70, 20));
+            wave1.Add(new Enemy(70, 10, 20, 100, 100, 0));
+
+
+            var wave2 = new List<Enemy>();
+            wave2.Add(new Enemy(50, 10, 20, 70, 70, 0));
+            wave2.Add(new Enemy(60, 10, 20, 100, 100, 10));
+            wave2.Add(new Enemy(60, 10, 20, 50, 50, 17));
+            wave2.Add(new Enemy(30, 10, 20, 70, 70, 10));
+            wave2.Add(new Enemy(100, 10, 20, 100, 100, 22));
+            wave2.Add(new Enemy(60, 10, 20, 70, 70, 27));
+            wave2.Add(new Enemy(70, 5, 20, 100, 100, 10));
+            wave2.Add(new Enemy(100, 7, 20, 100, 100, 42));
+            wave2.Add(new Enemy(60, 8, 20, 70, 70, 27));
+            wave2.Add(new Enemy(70, 5, 20, 100, 100, 10));
+
+            waves.Add(wave1);
+            waves.Add(wave2);
+            currentWave = wave1;
         }
 
         public static void Tick()
         {
             time++;
-            //form.TimeLabel.Text = time.ToString();
             form.TimeLabel.Text = $"{time / 10}.s";
-            if (wave.Count> 0 && wave[0].spawnTime <= time)
+            //you win
+            if (currentWave.Count == 0 && enemies.Count == 0)
             {
-                enemies.Add(wave[0]);
-                wave.RemoveAt(0);
-            }
-
-            for (int i = 0; i< enemies.Count; i ++)
-            {
-                Enemy enemy = enemies[i];
-                enemy.Move();
-                if (enemy.position.Y >= form.Height)
+                if (wave < waves.Count)
                 {
-                    fortHealth -= enemy.damage;
-                    form.labelHealth.Text = $"Health {fortHealth}";
-                    enemies.Remove(enemies[i]);
-                    i--;
+                    NextWave();
+                }
+                else
+                {
+                    Win();
                 }
             }
-            if (fortHealth <= 0)
+            if (currentWave.Count> 0 && currentWave[0].spawnTime <= time)
             {
-                form.timer1.Enabled = false;
-                MessageBox.Show("Your fort walls were destroyed!", "You lose!");
-                form.Close();
+                enemies.Add(currentWave[0]);
+                currentWave.RemoveAt(0);
             }
+            MoveEnemies();
+            CheckIfYouLose();
             UpdateDisplay();
         }
 
@@ -76,25 +88,59 @@ namespace lab02_2_Shooter
                     i--;
                 }
             }
-            //you win
-            if (wave.Count == 0 && enemies.Count == 0)
-            {
-                form.timer1.Enabled = false;
-                MessageBox.Show("You defeated all the enemies!", "You Win!");
-                form.Close();
-            }
+        }
+
+        private static void NextWave()
+        {
+            wave++;
+            currentWave = waves[wave - 1];
+            time = 0;
+            form.labelWave.Text = $"Wave {wave}";
         }
 
         public static void UpdateDisplay()
         {
-            //graphics.Clear(Color.PaleGoldenrod);
             graphics.DrawImage(form.background, 0, 0, form.Width, form.Height);
+            enemies.Sort((e1, e2) => e1.position.Y - e2.position.Y);
             foreach (Enemy enemy in enemies)
             {
                 graphics.DrawImage(form.alien, enemy.position.X, enemy.position.Y, (int)enemy.sizeX, (int)enemy.sizeY);
-                //graphics.FillRectangle(new SolidBrush(Color.Firebrick), enemy.position.X, enemy.position.Y, (int)enemy.size, (int)enemy.size);
             }
             form.pictureBox1.Image = bitmap;
+        }
+
+        public static void Win()
+        {
+            form.timer1.Enabled = false;
+            form.backgroundSound.Stop();
+            MessageBox.Show("You defeated all the enemies!", "You Win!");
+            form.Close();
+        }
+
+        public static void MoveEnemies()
+        {
+            for (int i = 0; i < enemies.Count; i++)
+            {
+                Enemy enemy = enemies[i];
+                enemy.Move();
+                if (enemy.position.Y >= form.Height)
+                {
+                    fortHealth -= enemy.damage;
+                    form.labelHealth.Text = $"Health {fortHealth}";
+                    enemies.Remove(enemies[i]);
+                    i--;
+                }
+            }
+        }
+
+        private static void CheckIfYouLose()
+        {
+            if (fortHealth <= 0)
+            {
+                form.timer1.Enabled = false;
+                MessageBox.Show("Your fort walls were destroyed!", "You lose!");
+                form.Close();
+            }
         }
 
         public static Point GetRandomPoint(int sizeX, int sizeY)

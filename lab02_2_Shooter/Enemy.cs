@@ -41,6 +41,11 @@ namespace lab02_2_Shooter
         {
             if(click.X > position.X && click.X < position.X + sizeX && click.Y > position.Y && click.Y < position.Y + sizeY)
             {
+                int x = click.X - position.X;
+                int y = click.Y - position.Y;
+                Bitmap bitmap = new Bitmap(Engine.form.alien);
+                if (bitmap.GetPixel(x, y).ToKnownColor() == KnownColor.Transparent)
+                    return;
                 health -= 20;
                 Engine.graphics.DrawString("20", new Font("Arial", 12), new SolidBrush(Color.White), click.X, click.Y - 20);
                 Engine.form.pictureBox1.Image = Engine.bitmap;

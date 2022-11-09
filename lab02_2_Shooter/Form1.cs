@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using System.Media;
 
 namespace lab02_2_Shooter
 {
@@ -14,6 +15,9 @@ namespace lab02_2_Shooter
     {
         public Image background = Image.FromFile(@"..\..\images\background.jpg");
         public Image alien = Image.FromFile(@"..\..\images\alien.png");
+        public SoundPlayer backgroundSound = new SoundPlayer(@"..\..\sounds\Thriller.wav");
+        public Image gun = Image.FromFile(@"..\..\images\gun.png");
+        //public Image target = Image.FromFile(@"..\..\images\target.png");
 
         public Form1()
         {
@@ -25,6 +29,16 @@ namespace lab02_2_Shooter
             pictureBox1.Width = this.Width;
             pictureBox1.Height = this.Height;
             TimeLabel.Parent = labelWave.Parent = labelHealth.Parent = pictureBox1;
+            pictureBoxGun.Parent = pictureBox1;
+            backgroundSound.Play();
+            /*Cursor cur = Cursors.WaitCursor;
+            this.Cursor = cur;
+            this.Cursor = new Cursor(Application.StartupPath + @"..\..\images\target.png");
+            this.Cursor = Cursor.Current;
+            Cursor.Position = new Point(Cursor.Position.X - 150, Cursor.Position.Y - 150);
+            Cursor.Show();*/
+            //pictureBox1.Cursor = new Cursor(@"..\..\images\target.png");
+            this.Cursor = Cursors.Cross;
             Engine.Init(this);
         }
 
@@ -33,6 +47,7 @@ namespace lab02_2_Shooter
             if (e.KeyCode == Keys.Escape)
             {
                 timer1.Enabled = false;
+                Engine.form.backgroundSound.PlayLooping();
                 var option = MessageBox.Show("Are you sure you want to exit this game? Your progress will be lost", "Exit Game", MessageBoxButtons.OKCancel);
                 if (option == DialogResult.OK)
                 {
@@ -43,13 +58,13 @@ namespace lab02_2_Shooter
         }
 
         private void timer1_Tick(object sender, EventArgs e)
-        {/*
-            foreach (Enemy enemy in Engine.enemies)
-            {
-                enemy.Move();
-            }
-            Engine.UpdateDisplay();*/
+        {
             Engine.Tick();
+        }
+
+        private void pictureBox1_MouseMove(object sender, MouseEventArgs e)
+        {
+            pictureBoxGun.Location = new Point(e.Location.X, e.Location.Y + 20);
         }
 
         private void pictureBox1_MouseClick(object sender, MouseEventArgs e)
