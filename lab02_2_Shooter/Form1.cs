@@ -14,9 +14,9 @@ namespace lab02_2_Shooter
     public partial class Form1 : Form
     {
         public Image background = Image.FromFile(@"..\..\images\background.jpg");
-        public Image alien = Image.FromFile(@"..\..\images\alien.png");
         public SoundPlayer backgroundSound = new SoundPlayer(@"..\..\sounds\Thriller.wav");
         public Image gun = Image.FromFile(@"..\..\images\gun.png");
+        //public Image backgroundMenu = Image.FromFile(@"..\..\images\menu_background.jpg");
         //public Image target = Image.FromFile(@"..\..\images\target.png");
 
         public Form1()
@@ -26,18 +26,27 @@ namespace lab02_2_Shooter
 
         private void Form1_Load(object sender, EventArgs e)
         {
-            pictureBox1.Width = this.Width;
-            pictureBox1.Height = this.Height;
-            TimeLabel.Parent = labelWave.Parent = labelHealth.Parent = pictureBox1;
+            pictureBox1.Width = MenuScreen.Width = StatusBar.Width = this.Width;
+            pictureBox1.Height = this.Height - StatusBar.Height;
+            MenuScreen.Height = this.Height;
+
+            TimeLabel.Parent = WaveLabel.Parent = HealthBar.Parent = StatusBar; ;
             pictureBoxGun.Parent = pictureBox1;
-            backgroundSound.Play();
+            HealthLabel.Parent = HealthBar;
+
+            StartButton.Parent = ExitButton.Parent = MenuScreen;
+            StartButton.Left = ExitButton.Left = this.Width / 2 - 3 * StartButton.Width / 8;
+            StartButton.Top = this.Height - StartButton.Height * 3;
+            ExitButton.Top = this.Height- StartButton.Height * 2;
+            
             /*Cursor cur = Cursors.WaitCursor;
             this.Cursor = cur;
             this.Cursor = new Cursor(Application.StartupPath + @"..\..\images\target.png");
             this.Cursor = Cursor.Current;
             Cursor.Position = new Point(Cursor.Position.X - 150, Cursor.Position.Y - 150);
-            Cursor.Show();*/
-            //pictureBox1.Cursor = new Cursor(@"..\..\images\target.png");
+            Cursor.Show();
+            pictureBox1.Cursor = new Cursor(@"..\..\images\target.png");*/
+            
             this.Cursor = Cursors.Cross;
             Engine.Init(this);
         }
@@ -47,6 +56,7 @@ namespace lab02_2_Shooter
             if (e.KeyCode == Keys.Escape)
             {
                 timer1.Enabled = false;
+                Engine.BlurBackground();
                 Engine.form.backgroundSound.PlayLooping();
                 var option = MessageBox.Show("Are you sure you want to exit this game? Your progress will be lost", "Exit Game", MessageBoxButtons.OKCancel);
                 if (option == DialogResult.OK)
@@ -70,6 +80,19 @@ namespace lab02_2_Shooter
         private void pictureBox1_MouseClick(object sender, MouseEventArgs e)
         {
             Engine.Shoot(e.Location);
+        }
+
+        private void buttonExit_Click(object sender, EventArgs e)
+        {
+            this.Close();
+        }
+
+        private void buttonStart_Click(object sender, EventArgs e)
+        {
+            timer1.Enabled = true;
+            MenuScreen.Enabled = false;
+            MenuScreen.Visible = false;
+            backgroundSound.PlayLooping();
         }
     }
 }
